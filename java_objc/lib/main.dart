@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -36,12 +38,6 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     var initializationSettingsAndroid =
         AndroidInitializationSettings('app_icon');
-    var initializationSettingsIOS = IOSInitializationSettings(
-        onDidReceiveLocalNotification: onDidReceiveLocalNotification);
-    var initializationSettings = InitializationSettings(
-        initializationSettingsAndroid, initializationSettingsIOS);
-    _flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: onSelectNotification);
     _firebaseMessaging.configure(onMessage: (message) async {
       print('onMessage: $message');
     }, onLaunch: (message) async {
@@ -49,8 +45,20 @@ class _MyHomePageState extends State<MyHomePage> {
     }, onResume: (message) async {
       print('onResume: $message');
     });
-    _firebaseMessaging.requestNotificationPermissions(
-        const IosNotificationSettings(sound: true, badge: true, alert: true));
+    final result = _firebaseMessaging.requestNotificationPermissions(
+        const IosNotificationSettings(
+            sound: true, badge: true, alert: true)) as Future<bool>;
+    if (result != null) {
+      result.then((requested) {
+        print('permissioned requested $requested');
+        var initializationSettingsIOS = IOSInitializationSettings(
+            onDidReceiveLocalNotification: onDidReceiveLocalNotification);
+        var initializationSettings = InitializationSettings(
+            initializationSettingsAndroid, initializationSettingsIOS);
+        _flutterLocalNotificationsPlugin.initialize(initializationSettings,
+            onSelectNotification: onSelectNotification);
+      });
+    }
     _firebaseMessaging.getToken().then((token) {
       print('token: $token');
       if (mounted) {
@@ -109,4 +117,6 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+
+  FutureOr onValue(bool value) {}
 }
