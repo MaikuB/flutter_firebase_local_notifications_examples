@@ -20,15 +20,7 @@ dependencies:
   flutter:
     sdk: flutter
   firebase_messaging:
-    git:
-      url: https://github.com/bparrishMines/flutterfire.git
-      path: packages/firebase_messaging
-      ref: almost_there
   flutter_local_notifications:
-    git:
-      url: https://github.com/MaikuB/flutter_local_notifications.git
-      ref: 0.9.0
-
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2

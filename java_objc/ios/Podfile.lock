@@ -85,11 +85,11 @@ PODS:
 
 DEPENDENCIES:
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
-  - Flutter (from `.symlinks/flutter/ios`)
+  - Flutter (from `Flutter`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
 
 SPEC REPOS:
-  https://github.com/cocoapods/specs.git:
+  https://github.com/CocoaPods/Specs.git:
     - Firebase
     - FirebaseAnalytics
     - FirebaseAnalyticsInterop
@@ -109,13 +109,13 @@ EXTERNAL SOURCES:
   firebase_messaging:
     :path: ".symlinks/plugins/firebase_messaging/ios"
   Flutter:
-    :path: ".symlinks/flutter/ios"
+    :path: Flutter
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
 
 SPEC CHECKSUMS:
   Firebase: a2b5951f30ff38fd3b3bdae9c7d340f940fd3c51
-  firebase_messaging: a71a360f5e0530ca78c2816d471921e784e8c532
+  firebase_messaging: 73b3e7dd7b3b6a7e4bdac10d5295211ca4f87f90
   FirebaseAnalytics: 48414ae5cbf6976d8a2f7177e0466540e5ab33ce
   FirebaseAnalyticsInterop: 0f250d71e8741352407a8db351e6de78c5c56d35
   FirebaseCore: 8c9e08bce0c72a3affd83927d8184cf244918bc8
@@ -132,6 +132,6 @@ SPEC CHECKSUMS:
   nanopb: 2901f78ea1b7b4015c860c2fdd1ea2fee1a18d48
   Protobuf: 1097ca58584c8d9be81bfbf2c5ff5975648dd87a
 
-PODFILE CHECKSUM: 64b2109b760ac9073c864e2a8278e6464efaa219
+PODFILE CHECKSUM: 3dbe063e9c90a5d7c9e4e76e70a821b9e2c1d271
 
-COCOAPODS: 1.7.2
+COCOAPODS: 1.8.4
