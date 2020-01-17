@@ -32,7 +32,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String _token;
-
+  String _launchMessage;
   @override
   void initState() {
     super.initState();
@@ -41,6 +41,9 @@ class _MyHomePageState extends State<MyHomePage> {
     _firebaseMessaging.configure(onMessage: (message) async {
       print('onMessage: $message');
     }, onLaunch: (message) async {
+      setState(() {
+        _launchMessage = message.toString();
+      });
       print('onLaunch: $message');
     }, onResume: (message) async {
       print('onResume: $message');
@@ -76,11 +79,6 @@ class _MyHomePageState extends State<MyHomePage> {
     if (payload != null) {
       debugPrint('notification payload: ' + payload);
     }
-
-    /*await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => SecondScreen(payload)),
-    );*/
   }
 
   Future<void> onDidReceiveLocalNotification(
@@ -94,9 +92,10 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Column(
         children: [
-          Text('FCM token: ${_token == null ? '' : _token}'),
+          Text('FCM token: ${_token ?? ''}'),
+          Text('Launch message: ${_launchMessage ?? ''}'),
           RaisedButton(
-            child: Text('show notification'),
+            child: Text('show local notification'),
             onPressed: () async {
               var androidPlatformChannelSpecifics = AndroidNotificationDetails(
                   'your channel id',
@@ -109,7 +108,7 @@ class _MyHomePageState extends State<MyHomePage> {
               var platformChannelSpecifics = NotificationDetails(
                   androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
               await _flutterLocalNotificationsPlugin.show(
-                  0, 'plain title', 'plain body', platformChannelSpecifics,
+                  1, 'plain title', 'plain body', platformChannelSpecifics,
                   payload: 'item x');
             },
           )
