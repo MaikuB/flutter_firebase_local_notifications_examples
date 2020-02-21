@@ -40,6 +40,22 @@ class _MyHomePageState extends State<MyHomePage> {
         AndroidInitializationSettings('app_icon');
     _firebaseMessaging.configure(onMessage: (message) async {
       print('onMessage: $message');
+      var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+        'your channel id',
+        'your channel name',
+        'your channel description',
+        importance: Importance.Max,
+        priority: Priority.High,
+      );
+      var iOSPlatformChannelSpecifics = IOSNotificationDetails();
+      var platformChannelSpecifics = NotificationDetails(
+          androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+      await _flutterLocalNotificationsPlugin.show(
+        0,
+        message['aps']['alert']['title'],
+        message['aps']['alert']['body'],
+        platformChannelSpecifics,
+      );
     }, onLaunch: (message) async {
       setState(() {
         _launchMessage = message.toString();
@@ -98,12 +114,12 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Text('show local notification'),
             onPressed: () async {
               var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-                  'your channel id',
-                  'your channel name',
-                  'your channel description',
-                  importance: Importance.Max,
-                  priority: Priority.High,
-                  ticker: 'ticker');
+                'your channel id',
+                'your channel name',
+                'your channel description',
+                importance: Importance.Max,
+                priority: Priority.High,
+              );
               var iOSPlatformChannelSpecifics = IOSNotificationDetails();
               var platformChannelSpecifics = NotificationDetails(
                   androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
