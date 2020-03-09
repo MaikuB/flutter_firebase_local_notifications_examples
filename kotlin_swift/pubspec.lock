@@ -69,10 +69,10 @@ packages:
     description:
       path: "packages/firebase_messaging"
       ref: HEAD
-      resolved-ref: "766a2c3b01120ad0184ec3d59c81974e4f05e7a6"
+      resolved-ref: "75018f2629a555d9b1887ec3c10250f7161ffd13"
       url: "https://github.com/MaikuB/flutterfire.git"
     source: git
-    version: "6.0.10"
+    version: "6.1.0"
   flutter:
     dependency: "direct main"
     description: flutter
