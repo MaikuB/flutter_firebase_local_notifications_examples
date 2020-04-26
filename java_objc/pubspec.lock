@@ -67,12 +67,10 @@ packages:
   firebase_messaging:
     dependency: "direct main"
     description:
-      path: "packages/firebase_messaging"
-      ref: HEAD
-      resolved-ref: "766a2c3b01120ad0184ec3d59c81974e4f05e7a6"
-      url: "https://github.com/MaikuB/flutterfire.git"
-    source: git
-    version: "6.0.10"
+      name: firebase_messaging
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "6.0.13"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -84,7 +82,7 @@ packages:
       name: flutter_local_notifications
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.2.1"
+    version: "1.4.2"
   flutter_local_notifications_platform_interface:
     dependency: transitive
     description:
