@@ -124,7 +124,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Firebase: 497158b816d0a86fc31babbd05546fcd7e6083ff
-  firebase_messaging: f768bb4f4b1c0f378176fdb55b2d18047b231d9a
+  firebase_messaging: cffb57ce40958c6204f03fb0c81713e4cd1e240c
   FirebaseAnalytics: cf95d3aab897612783020fbd98401d5366f135ee
   FirebaseAnalyticsInterop: 3f86269c38ae41f47afeb43ebf32a001f58fcdae
   FirebaseCore: 85064903ed6c28e47fec9c7bd149d94ba1b6b6e7

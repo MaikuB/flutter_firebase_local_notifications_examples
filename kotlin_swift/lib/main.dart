@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -36,8 +37,10 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    var initializationSettingsAndroid =
-        AndroidInitializationSettings('app_icon');
+    initializePlugins();
+  }
+
+  Future<void> initializePlugins() async {
     _firebaseMessaging.configure(onMessage: (message) async {
       print('onMessage: $message');
       var androidPlatformChannelSpecifics = AndroidNotificationDetails(
@@ -50,10 +53,23 @@ class _MyHomePageState extends State<MyHomePage> {
       var iOSPlatformChannelSpecifics = IOSNotificationDetails();
       var platformChannelSpecifics = NotificationDetails(
           androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+      var title = '';
+      if (Platform.isIOS) {
+        title = message['aps']['alert']['title'];
+      } else if (Platform.isAndroid) {
+        title = message['notification']['title'];
+      }
+
+      var body = '';
+      if (Platform.isIOS) {
+        body = message['aps']['alert']['body'];
+      } else if (Platform.isAndroid) {
+        body = message['notification']['body'];
+      }
       await _flutterLocalNotificationsPlugin.show(
         0,
-        message['aps']['alert']['title'],
-        message['aps']['alert']['body'],
+        title,
+        body,
         platformChannelSpecifics,
       );
     }, onLaunch: (message) async {
@@ -64,30 +80,34 @@ class _MyHomePageState extends State<MyHomePage> {
     }, onResume: (message) async {
       print('onResume: $message');
     });
-    final result = _firebaseMessaging.requestNotificationPermissions(
-        const IosNotificationSettings(
-            sound: true, badge: true, alert: true)) as Future<bool>;
+    final result = await _firebaseMessaging.requestNotificationPermissions(
+        const IosNotificationSettings(sound: true, badge: true, alert: true));
     if (result != null) {
-      result.then((requested) {
-        print('permissioned requested $requested');
-        var initializationSettingsIOS = IOSInitializationSettings(
-            onDidReceiveLocalNotification: onDidReceiveLocalNotification);
-        var initializationSettings = InitializationSettings(
-            initializationSettingsAndroid, initializationSettingsIOS);
-        _flutterLocalNotificationsPlugin.initialize(initializationSettings,
-            onSelectNotification: onSelectNotification);
-      });
+      print('permissioned requested $result');
+      await initializeFlutterLocalNotificationsPlugin();
+    } else if (Platform.isAndroid) {
+      await initializeFlutterLocalNotificationsPlugin();
     }
-    _firebaseMessaging.getToken().then((token) {
-      print('token: $token');
-      if (mounted) {
-        setState(() {
-          _token = token;
-        });
-      } else {
+    final token = await _firebaseMessaging.getToken();
+    print('token: $token');
+    if (mounted) {
+      setState(() {
         _token = token;
-      }
-    });
+      });
+    } else {
+      _token = token;
+    }
+  }
+
+  Future<void> initializeFlutterLocalNotificationsPlugin() async {
+    var initializationSettingsAndroid =
+        AndroidInitializationSettings('app_icon');
+    var initializationSettingsIOS = IOSInitializationSettings(
+        onDidReceiveLocalNotification: onDidReceiveLocalNotification);
+    var initializationSettings = InitializationSettings(
+        initializationSettingsAndroid, initializationSettingsIOS);
+    await _flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onSelectNotification: onSelectNotification);
   }
 
   Future<void> onSelectNotification(String payload) async {
