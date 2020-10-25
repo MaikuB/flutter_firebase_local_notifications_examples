@@ -47,12 +47,13 @@ class _MyHomePageState extends State<MyHomePage> {
         'your channel id',
         'your channel name',
         'your channel description',
-        importance: Importance.Max,
-        priority: Priority.High,
+        importance: Importance.max,
+        priority: Priority.high,
       );
       var iOSPlatformChannelSpecifics = IOSNotificationDetails();
       var platformChannelSpecifics = NotificationDetails(
-          androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+          android: androidPlatformChannelSpecifics,
+          iOS: iOSPlatformChannelSpecifics);
       var title = '';
       if (Platform.isIOS) {
         title = message['aps']['alert']['title'];
@@ -105,7 +106,7 @@ class _MyHomePageState extends State<MyHomePage> {
     var initializationSettingsIOS = IOSInitializationSettings(
         onDidReceiveLocalNotification: onDidReceiveLocalNotification);
     var initializationSettings = InitializationSettings(
-        initializationSettingsAndroid, initializationSettingsIOS);
+        android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
     await _flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onSelectNotification: onSelectNotification);
   }
@@ -137,12 +138,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 'your channel id',
                 'your channel name',
                 'your channel description',
-                importance: Importance.Max,
-                priority: Priority.High,
+                importance: Importance.max,
+                priority: Priority.high,
               );
               var iOSPlatformChannelSpecifics = IOSNotificationDetails();
               var platformChannelSpecifics = NotificationDetails(
-                  androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+                  android: androidPlatformChannelSpecifics,
+                  iOS: iOSPlatformChannelSpecifics);
               await _flutterLocalNotificationsPlugin.show(
                   1, 'plain title', 'plain body', platformChannelSpecifics,
                   payload: 'item x');
