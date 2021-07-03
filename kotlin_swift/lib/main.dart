@@ -12,14 +12,14 @@ const String backgroundMessageIdKey = 'backgroundMessageId';
 final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
-RemoteMessage initialRemoteMessage;
-NotificationAppLaunchDetails launchNotificationDetails;
+RemoteMessage? initialRemoteMessage;
+NotificationAppLaunchDetails? launchNotificationDetails;
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   final SharedPreferences sharedPreferences =
       await SharedPreferences.getInstance();
-  sharedPreferences.setString(backgroundMessageIdKey, message.messageId);
+  sharedPreferences.setString(backgroundMessageIdKey, message.messageId!);
 }
 
 Future<void> main() async {
@@ -48,21 +48,44 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key}) : super(key: key);
+  MyHomePage({Key? key}) : super(key: key);
 
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  String _token;
-  String selectedLocalNotification = '';
-  String selectedRemoteNotification = '';
-  String backgroundMessageId = '';
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
+  String? _token;
+  String? selectedLocalNotification = '';
+  String? selectedRemoteNotification = '';
+  String? backgroundMessageId = '';
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance!.addObserver(this);
     initializePlugins();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance!.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      final SharedPreferences sharedPreferences =
+          await SharedPreferences.getInstance();
+      if (sharedPreferences.containsKey(backgroundMessageIdKey)) {
+        backgroundMessageId =
+            sharedPreferences.getString(backgroundMessageIdKey);
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    }
   }
 
   Future<void> initializePlugins() async {
@@ -78,7 +101,7 @@ class _MyHomePageState extends State<MyHomePage> {
     FirebaseMessaging.onMessage.listen((message) async {
       print('onMessage: $message');
       setState(() {
-        selectedRemoteNotification = message.notification.body;
+        selectedRemoteNotification = message.notification!.body;
       });
       if (Platform.isIOS) {
         return;
@@ -96,8 +119,8 @@ class _MyHomePageState extends State<MyHomePage> {
           iOS: iOSPlatformChannelSpecifics);
       await _flutterLocalNotificationsPlugin.show(
         0,
-        message.notification.title,
-        message.notification.body,
+        message.notification!.title,
+        message.notification!.body,
         platformChannelSpecifics,
       );
     });
@@ -108,20 +131,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
     final token = await _firebaseMessaging.getToken();
     _saveToken(token);
-
-    final SharedPreferences sharedPreferences =
-        await SharedPreferences.getInstance();
-    if (sharedPreferences.containsKey(backgroundMessageIdKey)) {
-      backgroundMessageId = sharedPreferences.getString(backgroundMessageIdKey);
-      if (mounted) {
-        setState(() {});
-      }
-      // clear for next test
-      sharedPreferences.clear();
-    }
   }
 
-  void _saveToken(String token) {
+  void _saveToken(String? token) {
     print('token: $token');
     if (mounted) {
       setState(() {
@@ -143,7 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onSelectNotification: onSelectNotification);
   }
 
-  Future<void> onSelectNotification(String payload) async {
+  Future<void> onSelectNotification(String? payload) async {
     setState(() {
       selectedLocalNotification = payload;
     });
@@ -154,7 +166,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> onDidReceiveLocalNotification(
-      int id, String title, String body, String payload) async {}
+      int id, String? title, String? body, String? payload) async {}
 
   @override
   Widget build(BuildContext context) {
