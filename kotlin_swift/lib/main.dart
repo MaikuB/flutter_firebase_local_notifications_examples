@@ -1,15 +1,27 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
+RemoteMessage initialRemoteMessage;
+NotificationAppLaunchDetails launchNotificationDetails;
 
-void main() => runApp(MyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  initialRemoteMessage = await _firebaseMessaging.getInitialMessage();
+
+  launchNotificationDetails =
+      await _flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -33,7 +45,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String _token;
-  String _launchMessage;
+  String selectedLocalNotification = '';
+  String selectedRemoteNotification = '';
   @override
   void initState() {
     super.initState();
@@ -41,8 +54,20 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> initializePlugins() async {
-    _firebaseMessaging.configure(onMessage: (message) async {
+    await Firebase.initializeApp();
+    await _firebaseMessaging.requestPermission(
+        sound: true, badge: true, alert: true);
+    await initializeFlutterLocalNotificationsPlugin();
+    await _firebaseMessaging.setForegroundNotificationPresentationOptions(
+        alert: true, badge: true, sound: true);
+    FirebaseMessaging.onMessage.listen((message) async {
       print('onMessage: $message');
+      setState(() {
+        selectedRemoteNotification = message.notification.body;
+      });
+      if (Platform.isIOS) {
+        return;
+      }
       var androidPlatformChannelSpecifics = AndroidNotificationDetails(
         'your channel id',
         'your channel name',
@@ -54,41 +79,14 @@ class _MyHomePageState extends State<MyHomePage> {
       var platformChannelSpecifics = NotificationDetails(
           android: androidPlatformChannelSpecifics,
           iOS: iOSPlatformChannelSpecifics);
-      var title = '';
-      if (Platform.isIOS) {
-        title = message['aps']['alert']['title'];
-      } else if (Platform.isAndroid) {
-        title = message['notification']['title'];
-      }
-
-      var body = '';
-      if (Platform.isIOS) {
-        body = message['aps']['alert']['body'];
-      } else if (Platform.isAndroid) {
-        body = message['notification']['body'];
-      }
       await _flutterLocalNotificationsPlugin.show(
         0,
-        title,
-        body,
+        message.notification.title,
+        message.notification.body,
         platformChannelSpecifics,
       );
-    }, onLaunch: (message) async {
-      setState(() {
-        _launchMessage = message.toString();
-      });
-      print('onLaunch: $message');
-    }, onResume: (message) async {
-      print('onResume: $message');
     });
-    final result = await _firebaseMessaging.requestNotificationPermissions(
-        const IosNotificationSettings(sound: true, badge: true, alert: true));
-    if (result != null) {
-      print('permissioned requested $result');
-      await initializeFlutterLocalNotificationsPlugin();
-    } else if (Platform.isAndroid) {
-      await initializeFlutterLocalNotificationsPlugin();
-    }
+
     final token = await _firebaseMessaging.getToken();
     print('token: $token');
     if (mounted) {
@@ -112,6 +110,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> onSelectNotification(String payload) async {
+    setState(() {
+      selectedLocalNotification = payload;
+    });
     debugPrint('onSelectNotification');
     if (payload != null) {
       debugPrint('notification payload: ' + payload);
@@ -129,9 +130,14 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Column(
         children: [
-          Text('FCM token: ${_token ?? ''}'),
-          Text('Launch message: ${_launchMessage ?? ''}'),
-          RaisedButton(
+          SelectableText('FCM token: ${_token ?? ''}'),
+          Text(
+              'Initial remote message: ${(initialRemoteMessage?.notification?.body ?? '')}'),
+          Text(
+              'Launch notification payload: ${(launchNotificationDetails?.payload ?? '')}'),
+          Text('Selected remote message: $selectedRemoteNotification'),
+          Text('Selected local message: $selectedLocalNotification'),
+          ElevatedButton(
             child: Text('show local notification'),
             onPressed: () async {
               var androidPlatformChannelSpecifics = AndroidNotificationDetails(
@@ -154,6 +160,4 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
-
-  FutureOr onValue(bool value) {}
 }
