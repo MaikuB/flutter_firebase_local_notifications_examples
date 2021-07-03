@@ -2,15 +2,25 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+const String backgroundMessageIdKey = 'backgroundMessageId';
 
 final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 RemoteMessage initialRemoteMessage;
 NotificationAppLaunchDetails launchNotificationDetails;
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  final SharedPreferences sharedPreferences =
+      await SharedPreferences.getInstance();
+  sharedPreferences.setString(backgroundMessageIdKey, message.messageId);
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,6 +57,8 @@ class _MyHomePageState extends State<MyHomePage> {
   String _token;
   String selectedLocalNotification = '';
   String selectedRemoteNotification = '';
+  String backgroundMessageId = '';
+
   @override
   void initState() {
     super.initState();
@@ -55,11 +67,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> initializePlugins() async {
     await Firebase.initializeApp();
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
     await _firebaseMessaging.requestPermission(
         sound: true, badge: true, alert: true);
     await initializeFlutterLocalNotificationsPlugin();
     await _firebaseMessaging.setForegroundNotificationPresentationOptions(
         alert: true, badge: true, sound: true);
+
     FirebaseMessaging.onMessage.listen((message) async {
       print('onMessage: $message');
       setState(() {
@@ -87,7 +102,26 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     });
 
+    _firebaseMessaging.onTokenRefresh.listen((token) {
+      _saveToken(token);
+    });
+
     final token = await _firebaseMessaging.getToken();
+    _saveToken(token);
+
+    final SharedPreferences sharedPreferences =
+        await SharedPreferences.getInstance();
+    if (sharedPreferences.containsKey(backgroundMessageIdKey)) {
+      backgroundMessageId = sharedPreferences.getString(backgroundMessageIdKey);
+      if (mounted) {
+        setState(() {});
+      }
+      // clear for next test
+      sharedPreferences.clear();
+    }
+  }
+
+  void _saveToken(String token) {
     print('token: $token');
     if (mounted) {
       setState(() {
@@ -135,6 +169,7 @@ class _MyHomePageState extends State<MyHomePage> {
               'Initial remote message: ${(initialRemoteMessage?.notification?.body ?? '')}'),
           Text(
               'Launch notification payload: ${(launchNotificationDetails?.payload ?? '')}'),
+          Text('Background message id: $backgroundMessageId'),
           Text('Selected remote message: $selectedRemoteNotification'),
           Text('Selected local message: $selectedLocalNotification'),
           ElevatedButton(
