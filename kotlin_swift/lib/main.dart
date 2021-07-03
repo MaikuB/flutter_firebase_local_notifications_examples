@@ -84,6 +84,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         if (mounted) {
           setState(() {});
         }
+        sharedPreferences.clear();
       }
     }
   }
