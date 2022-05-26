@@ -110,7 +110,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       var androidPlatformChannelSpecifics = AndroidNotificationDetails(
         'your channel id',
         'your channel name',
-        'your channel description',
         importance: Importance.max,
         priority: Priority.high,
       );
@@ -124,6 +123,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         message.notification!.body,
         platformChannelSpecifics,
       );
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((message) async {
+      print('onMessageOpenedApp: $message');
     });
 
     _firebaseMessaging.onTokenRefresh.listen((token) {
@@ -191,7 +194,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
               var androidPlatformChannelSpecifics = AndroidNotificationDetails(
                 'your channel id',
                 'your channel name',
-                'your channel description',
                 importance: Importance.max,
                 priority: Priority.high,
               );
